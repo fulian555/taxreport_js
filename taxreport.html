@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="language" content="en">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.validate.js"></script>
+	<script src="taxreport.js"></script>
+	<script type="text/javascript">
+        window.onload = tpEntry;
+    </script>
+</head>
+
+<body>
+
+	<div id="tp-frame">
+	
+		<h1>报税</h1>
+	
+		<form id="tp-form">
+		</form>
+		
+		<button type="button" id="tp-bt-prev" onclick="tpPrev()" style="display: none;">上一步</button>
+		<button type="button" id="tp-bt-next" onclick="tpNext()" style="display: none;">下一步</button>
+		<input type="submit" id="tp-submit" value="Submit" style="display: none;" />
+	</div>
+	
+</body>
+
+
+</html>
