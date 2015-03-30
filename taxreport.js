@@ -34,13 +34,14 @@ var g_tpForm = [
 					inputs: {
 						type: "text",
 						attr: {
-							name: [],
-							value:[]
+							name: ["size"],
+							value:[20]
 						},
 						validate: {
 							required: true,
 							regularE: "[a-zA-Z]"
 						},
+						err: "全英文字母，请与SIN卡保持一致"
 					},
 					prev: null
 				},
@@ -50,13 +51,14 @@ var g_tpForm = [
 					inputs: {
 						type: "text",
 						attr: {
-							name: [],
-							value:[]
+							name: ["size"],
+							value:[20]
 						},
 						validate: {
 							required: true,
 							regularE: "[a-zA-Z]"
 						},
+						err: "全英文字母，请与SIN卡保持一致"
 					},
 					prev: null
 				}				
@@ -86,6 +88,7 @@ var g_tpForm = [
 
 var classDiv = "tp-div";
 var classTips = "tp-tips";
+var classErr = "tp-err";
 function idDiv(formNumber) {
 	return "tp"+formNumber;
 }
@@ -110,6 +113,7 @@ function radioInput(name, radioObj) {
 		//add the label
 		radiocode = radiocode + '<label for="tp-rd-' + name + '">' + radioObj.value[j] + '</label>';
 	}	
+	radiocode = radiocode + '</br></br>';
 	
 	return radiocode;
 }
@@ -119,7 +123,16 @@ function textInput(name, textObj) {
 	
 	textcode = textcode + '<input type="text" name="' + nameAttr(name) + '"';	
 	
+	for (var i = 0 ; i < textObj.attr.name.length; i++) {
+		textcode = textcode + textObj.attr.name[i] + '="' + textObj.attr.value[i] + '"';
+	}
+	
 	textcode = textcode + '/>';
+	
+	textcode = textcode + '<span class="'+classErr+'"> '+textObj.err+'</span>';
+	
+	textcode = textcode + '</br></br>';
+	
 	return textcode;
 }
 
@@ -130,14 +143,18 @@ function multiInput(name, multiObj) {
 	
 	for (var i = 0; i < inputsNum; i++) {
 		tmpForm = multiObj.subinputs[i];
-		//add the tips
-		multicode = multicode + '<p class="'+classTips+'" id="'+idTips(tmpForm.name) + '">'+tmpForm.tips+'</p>';
 		//process the subinput fild
 		switch (tmpForm.inputs.type) {
 			case "radio" :
+				multicode = multicode + '<lable class="'+classTips+'" for="'+idTips(tmpForm.name) + '">'+tmpForm.tips+'</lable>';
 				multicode = multicode + radioInput(tmpForm.name, tmpForm.inputs );			
 				break;
 			case "text":
+				if (tmpForm.inputs.validate.required == true) {
+					multicode = multicode + '<span class="'+classTips+'"><b class="ftx04">*</b>'+tmpForm.tips+'</span>';
+				} else {
+					multicode = multicode + '<span class="'+classTips+'">'+tmpForm.tips+'</span>';
+				}
 				multicode = multicode + textInput(tmpForm.name, tmpForm.inputs );
 				break;
 			case "multi" :
