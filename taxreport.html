@@ -17,12 +17,16 @@
 	
 		<h1>报税</h1>
 	
-		<form id="tp-form">
+		<form>
+			<div id="tp-form">
+			
+			</div>
+			<br />
+			<button type="button" id="tp-bt-prev" onclick="tpPrev()" style="display: none;">上一步</button>
+			<button type="button" id="tp-bt-next" onclick="tpNext()" style="display: none;">下一步</button>
+			<input type="submit" id="tp-submit" value="Submit" style="display: none;" />
 		</form>
 		
-		<button type="button" id="tp-bt-prev" onclick="tpPrev()" style="display: none;">上一步</button>
-		<button type="button" id="tp-bt-next" onclick="tpNext()" style="display: none;">下一步</button>
-		<input type="submit" id="tp-submit" value="Submit" style="display: none;" />
 	</div>
 	
 </body>
