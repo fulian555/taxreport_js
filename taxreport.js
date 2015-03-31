@@ -41,7 +41,7 @@ var g_tpForm = [
 							required: true,
 							regularE: "[A-Z()]+"
 						},
-						help: "全英文大写字母，与SIN卡保持一致",
+						help: "(全英文大写字母，与SIN卡保持一致)",
 						err: "请输入全英文大写字母，须与SIN卡保持一致"
 					},
 					prev: null
@@ -59,11 +59,80 @@ var g_tpForm = [
 							required: true,
 							regularE: "[A-Z()]+"
 						},
-						help: "全英文大写字母，与SIN卡保持一致",
+						help: "(全英文大写字母，与SIN卡保持一致)",
 						err: "请输入全英文大写字母，须与SIN卡保持一致"
 					},
 					prev: null
-				}				
+				},	
+				{
+					name: "mailaddress",
+					tips: "街道地址：",
+					inputs: {
+						type: "text",
+						attr: {
+							name: ["size"],
+							value:[40]
+						},
+						validate: {
+							required: true,
+							//regularE: "[a-zA-Z()]+"
+						},
+						help: "(您当前正在使用的邮件地址)",
+						err: ""
+					},
+					prev: null
+				},
+				{
+					name: "city",
+					tips: "市：",
+					inputs: {
+						type: "text",
+						attr: {
+							name: ["size"],
+							value:[16]
+						},
+						validate: {
+							required: true,
+							//regularE: "[a-zA-Z()]+"
+						},
+						help: "",
+						err: ""
+					},
+					prev: null
+				},
+				{
+					name: "province",
+					tips: "省：",
+					inputs: {
+						type: "select",
+						value: ["-select-", "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK"],
+						next: [null, null, null, null, null, null, null, null, null, null, null, null, null],
+						validate: {
+							required: true,
+						},
+						help: "(请选择您所在省份)",
+						err: ""
+					},
+					prev: null
+				},
+				{
+					name: "postcode",
+					tips: "邮编：",
+					inputs: {
+						type: "text",
+						attr: {
+							name: ["size"],
+							value:[6]
+						},
+						validate: {
+							required: true,
+							//regularE: "[a-zA-Z()]+"
+						},
+						help: "(输入有效的邮编)",
+						err: ""
+					},
+					prev: null
+				},
 			],			
 		},
 		prev: null,
@@ -127,6 +196,25 @@ function radioInput(name, radioObj) {
 	return radiocode;
 }
 
+function selectInput(name, selectObj) {
+	var selectcode='<select name="'+nameAttr(name)+'">';
+	
+	for (var j = 0; j < selectObj.value.length; j++) {
+		
+		//add the radio
+		selectcode = selectcode + '<option value="'+j+'">' + selectObj.value[j] + '</option>';
+	}	
+	selectcode = selectcode + '</select>';
+	
+	selectcode = selectcode + '<span class="'+classTextHelp+'" id="'+idHelp(name)+'">'+selectObj.help+'</span>';
+	selectcode = selectcode + '<span class="'+classTextErr+'" id="'+idErr(name)+'" style="display: none;"> '+selectObj.err+'</span>';
+	
+	selectcode = selectcode + '</br></br>';
+	
+	return selectcode;
+	
+}
+
 function textInput(name, textObj) {
 	var textcode = "";
 	
@@ -138,7 +226,7 @@ function textInput(name, textObj) {
 	
 	textcode = textcode + '/>';
 	
-	textcode = textcode + '<span class="'+classTextHelp+'" id="'+idHelp(name)+'"> ('+textObj.help+')</span>';
+	textcode = textcode + '<span class="'+classTextHelp+'" id="'+idHelp(name)+'">'+textObj.help+'</span>';
 	textcode = textcode + '<span class="'+classTextErr+'" id="'+idErr(name)+'" style="display: none;"> '+textObj.err+'</span>';
 	
 	textcode = textcode + '</br></br>';
@@ -156,7 +244,8 @@ function multiInput(name, multiObj) {
 		//process the subinput fild
 		switch (tmpForm.inputs.type) {
 			case "radio" :
-				multicode = multicode + '<lable class="'+classTips+'" for="'+idTips(tmpForm.name) + '">'+tmpForm.tips+'</lable>';
+				//multicode = multicode + '<lable class="'+classTips+'" for="'+idTips(tmpForm.name) + '">'+tmpForm.tips+'</lable>';
+				multicode = multicode + '<span class="'+classTips+'">'+tmpForm.tips+'</span>';
 				multicode = multicode + radioInput(tmpForm.name, tmpForm.inputs );			
 				break;
 			case "text":
@@ -167,7 +256,14 @@ function multiInput(name, multiObj) {
 				}
 				multicode = multicode + textInput(tmpForm.name, tmpForm.inputs );
 				break;
-				
+			case "select":	
+				if (tmpForm.inputs.validate.required == true) {
+					multicode = multicode + '<span class="'+classTips+'"><b class="ftx04">*</b>'+tmpForm.tips+'</span>';
+				} else {
+					multicode = multicode + '<span class="'+classTips+'">'+tmpForm.tips+'</span>';
+				}
+				multicode = multicode + selectInput(tmpForm.name, tmpForm.inputs );
+				break;
 			default:
 				break;
 		}
@@ -193,6 +289,7 @@ function formgenerate(formNum) {
 			break;
 			
 		case "multi" :
+			htmlcode = htmlcode + '<br />';
 			htmlcode = htmlcode + multiInput(newForm.name, newForm.inputs );	
 			break;
 			
@@ -306,18 +403,34 @@ function getMultiNext(curId) {
 						document.getElementById(idErr(tmpForm.name)).style.display = 'none';
 					}
 				} else {
-					var patt = new RegExp(tmpForm.inputs.validate.regularE,"g");
-					var res = patt.test(textinput);
-					if (!res) {
+					if (tmpForm.inputs.validate.hasOwnProperty('regularE')) {
+						var patt = new RegExp(tmpForm.inputs.validate.regularE,"g");
+						var res = patt.test(textinput);
+						if (!res) {
+							valid = 0;
+							document.getElementById(idErr(tmpForm.name)).innerHTML = tmpForm.inputs.err;
+							document.getElementById(idErr(tmpForm.name)).style.color  = 'red';
+							document.getElementById(idErr(tmpForm.name)).style.display = 'inline-block';
+						} else {
+							document.getElementById(idErr(tmpForm.name)).style.display = 'none';
+						}		
+					}					
+				}
+				break;	
+			case "select" :
+				var sel = document.forms['Form_tp'].elements[nameAttr(tmpForm.name)];
+				var val = sel.value;
+				if (val == 0) {
+					if (tmpForm.inputs.validate.required == true) {
 						valid = 0;
-						document.getElementById(idErr(tmpForm.name)).innerHTML = tmpForm.inputs.err;
+						document.getElementById(idErr(tmpForm.name)).innerHTML = '此为必选项';
 						document.getElementById(idErr(tmpForm.name)).style.color  = 'red';
 						document.getElementById(idErr(tmpForm.name)).style.display = 'inline-block';
 					} else {
 						document.getElementById(idErr(tmpForm.name)).style.display = 'none';
-					}						
+					}
 				}
-				break;				
+				break;
 			default:
 				break;
 		}
