@@ -39,9 +39,10 @@ var g_tpForm = [
 						},
 						validate: {
 							required: true,
-							regularE: "[a-zA-Z]"
+							regularE: "[A-Z()]+"
 						},
-						err: "全英文字母，请与SIN卡保持一致"
+						help: "全英文大写字母，与SIN卡保持一致",
+						err: "请输入全英文大写字母，须与SIN卡保持一致"
 					},
 					prev: null
 				},
@@ -56,9 +57,10 @@ var g_tpForm = [
 						},
 						validate: {
 							required: true,
-							regularE: "[a-zA-Z]"
+							regularE: "[A-Z()]+"
 						},
-						err: "全英文字母，请与SIN卡保持一致"
+						help: "全英文大写字母，与SIN卡保持一致",
+						err: "请输入全英文大写字母，须与SIN卡保持一致"
 					},
 					prev: null
 				}				
@@ -88,12 +90,19 @@ var g_tpForm = [
 
 var classDiv = "tp-div";
 var classTips = "tp-tips";
-var classErr = "tp-err";
+var classTextErr = "tp-text-err";
+var classTextHelp = "tp-text-help";
 function idDiv(formNumber) {
 	return "tp"+formNumber;
 }
 function idTips(name) {
 	return "tp-tips-"+name;
+}
+function idErr(name) {
+	return "tp-err-"+name;
+}
+function idHelp(name) {
+	return "tp-help-"+name;
 }
 function nameAttr(name) {
 	return "tp_"+name;
@@ -121,15 +130,16 @@ function radioInput(name, radioObj) {
 function textInput(name, textObj) {
 	var textcode = "";
 	
-	textcode = textcode + '<input type="text" name="' + nameAttr(name) + '"';	
+	textcode = textcode + '<input type="text" name="' + nameAttr(name) + '" ';	
 	
 	for (var i = 0 ; i < textObj.attr.name.length; i++) {
-		textcode = textcode + textObj.attr.name[i] + '="' + textObj.attr.value[i] + '"';
+		textcode = textcode + textObj.attr.name[i] + '="' + textObj.attr.value[i] + '" ';
 	}
 	
 	textcode = textcode + '/>';
 	
-	textcode = textcode + '<span class="'+classErr+'"> '+textObj.err+'</span>';
+	textcode = textcode + '<span class="'+classTextErr+'" id="'+idErr(name)+'" style="display: none;"> '+textObj.err+'</span>';
+	textcode = textcode + '<span class="'+classTextHelp+'" id="'+idHelp(name)+'" style="display: none;"> '+textObj.help+'</span>';
 	
 	textcode = textcode + '</br></br>';
 	
@@ -156,9 +166,6 @@ function multiInput(name, multiObj) {
 					multicode = multicode + '<span class="'+classTips+'">'+tmpForm.tips+'</span>';
 				}
 				multicode = multicode + textInput(tmpForm.name, tmpForm.inputs );
-				break;
-			case "multi" :
-				multicode = multicode + multiInput(tmpForm.name, tmpForm.inputs );	
 				break;
 				
 			default:
@@ -250,26 +257,98 @@ function tpPrev() {
 	return ;	 
 }
 
-function tpNext() {
-	var newForm = g_tpForm[g_tpCurFormNo];
-	var nextFormNo = g_tpCurFormNo + 1;
+
+function getRadioNextId(curId) {
+	var curForm = g_tpForm[curId];
+	var nextFormNo = curId + 1;
 	
-	if (newForm.inputs.type === "radio") {
-		var name = nameAttr(newForm.name);
-		var radios = document.getElementsByName(name);
-		for (var i = 0, length = radios.length; i < length; i++) {
-			if (radios[i].checked) {
-				// get the value
-				var radiovalue = radios[i].value;
-				if (newForm.inputs.next[radiovalue] != null) {
-					nextFormNo = newForm.inputs.next[radiovalue];
-				}
-				// only one radio can be logically checked, don't check the rest
-				break;
+	var name = nameAttr(curForm.name);
+	var radios = document.getElementsByName(name);
+	for (var i = 0; i < radios.length; i++) {
+		if (radios[i].checked) {
+			// get the value
+			var radiovalue = radios[i].value;
+			if (curForm.inputs.next[radiovalue] != null) {
+				nextFormNo = curForm.inputs.next[radiovalue];
 			}
+			// only one radio can be logically checked, don't check the rest
+			break;
 		}
 	}
-		
+	
+	return nextFormNo;
+}
+
+function getMultiNext(curId) {
+	var multiObj = g_tpForm[curId].inputs;
+	var inputsNum = multiObj.subinputs.length;
+	var tmpForm;
+	var nextFormNo = curId;
+	var valid = 1;
+	
+	for (var i = 0; i < inputsNum; i++) {
+		tmpForm = multiObj.subinputs[i];
+		//process the subinput fild
+		switch (tmpForm.inputs.type) {
+			case "radio" ://should not specify the corresponding next step.						
+				break;
+			case "text"://valide the input
+				var name = nameAttr(tmpForm.name);
+				var textinput = document.getElementsByName(name)[0].value;
+				
+				if (textinput == "") {
+					if (tmpForm.inputs.validate.required == true) {
+						valid = 0;
+						document.getElementById(idErr(tmpForm.name)).innerHTML = '此项不能为空';
+						document.getElementById(idErr(tmpForm.name)).style.color  = 'red';
+						document.getElementById(idErr(tmpForm.name)).style.display = 'inline-block';
+					} else {
+						document.getElementById(idErr(tmpForm.name)).style.display = 'none';
+					}
+				} else {
+					var patt = new RegExp(tmpForm.inputs.validate.regularE,"g");
+					var res = patt.test(textinput);
+					if (!res) {
+						valid = 0;
+						document.getElementById(idErr(tmpForm.name)).innerHTML = tmpForm.inputs.err;
+						document.getElementById(idErr(tmpForm.name)).style.color  = 'red';
+						document.getElementById(idErr(tmpForm.name)).style.display = 'inline-block';
+					} else {
+						document.getElementById(idErr(tmpForm.name)).style.display = 'none';
+					}						
+				}
+				break;				
+			default:
+				break;
+		}
+	}
+	
+	if (valid == 1) {
+		nextFormNo = curId + 1;
+	} 
+	
+	return nextFormNo;
+}
+
+function tpNext() {
+	var newForm = g_tpForm[g_tpCurFormNo];
+	var nextFormNo = g_tpCurFormNo;
+	
+	switch (newForm.inputs.type) {
+		case "radio":
+			nextFormNo = getRadioNextId(g_tpCurFormNo);
+			break;
+		case "multi":
+			nextFormNo = getMultiNext(g_tpCurFormNo);
+			break;
+		default:
+			break;
+	}
+	
+	//if can not entry next step, then stay
+	if (nextFormNo == g_tpCurFormNo) {
+		return ;
+	}
 	//hide current form
 	var currentId = idDiv(g_tpCurFormNo);
 	document.getElementById(currentId).style.display = 'none';
