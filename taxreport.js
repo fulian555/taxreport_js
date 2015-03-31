@@ -138,8 +138,8 @@ function textInput(name, textObj) {
 	
 	textcode = textcode + '/>';
 	
+	textcode = textcode + '<span class="'+classTextHelp+'" id="'+idHelp(name)+'"> ('+textObj.help+')</span>';
 	textcode = textcode + '<span class="'+classTextErr+'" id="'+idErr(name)+'" style="display: none;"> '+textObj.err+'</span>';
-	textcode = textcode + '<span class="'+classTextHelp+'" id="'+idHelp(name)+'" style="display: none;"> '+textObj.help+'</span>';
 	
 	textcode = textcode + '</br></br>';
 	
